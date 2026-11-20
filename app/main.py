@@ -24,7 +24,7 @@ from .security import (
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").casefold()
 COOKIE_SECURE = ENVIRONMENT == "production"
-COOKIE_SAMESITE = "lax"
+COOKIE_SAMESITE = os.getenv("AUTH_COOKIE_SAMESITE", "lax").casefold()
 COOKIE_PATH = "/api"
 ALLOWED_ORIGINS = [
     origin.strip()
@@ -38,6 +38,10 @@ ALLOWED_ORIGINS = [
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     get_auth_secret()
+    if COOKIE_SAMESITE not in {"lax", "strict", "none"}:
+        raise RuntimeError("AUTH_COOKIE_SAMESITE must be 'lax', 'strict', or 'none'.")
+    if COOKIE_SAMESITE == "none" and not COOKIE_SECURE:
+        raise RuntimeError("AUTH_COOKIE_SAMESITE=none requires ENVIRONMENT=production and HTTPS.")
     if ENVIRONMENT == "production" and DATABASE_URL.startswith("sqlite"):
         raise RuntimeError("Production deployments must use a managed database, not SQLite.")
     Base.metadata.create_all(bind=engine)

@@ -40,10 +40,26 @@ def test_student_can_register_and_restore_session(client):
     assert response.json()["recontact_consent"] is False
     assert "password_hash" not in response.json()
     assert "httponly" in response.headers["set-cookie"].lower()
+    assert "samesite=lax" in response.headers["set-cookie"].lower()
 
     session = client.get("/api/auth/me")
     assert session.status_code == 200
     assert session.json()["id"] == response.json()["id"]
+
+
+def test_frontend_origin_can_make_credentialed_api_requests(client):
+    response = client.options(
+        "/api/auth/login",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+    assert response.headers["access-control-allow-credentials"] == "true"
 
 
 def test_duplicate_email_is_rejected(client):

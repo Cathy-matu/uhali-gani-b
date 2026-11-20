@@ -19,7 +19,9 @@ Start the API from this directory:
 DATABASE_URL=sqlite:///./hali.db uvicorn app.main:app --env-file .env --reload --port 8001
 ```
 
-The Hali frontend's Vite development server proxies `/api` requests to port 8001. For a hosted API, configure `VITE_API_BASE_URL` in the frontend with the API's `/api` URL and configure the backend's `ALLOWED_ORIGINS`.
+The Hali frontend's Vite development server proxies `/api` requests to port 8001. For separate production hosts, set the frontend build variable `VITE_API_BASE_URL` to the backend's full `/api` URL, and set `ALLOWED_ORIGINS` to the exact frontend origin (scheme and host, no path). The API allows credentialed CORS requests for those origins.
+
+The session is stored in an HTTP-only cookie. Keep the frontend and API on the same site where possible (for example, `hali.example.com` and `api.example.com`) so browsers can send the cookie reliably. For genuinely cross-site hosts, set `AUTH_COOKIE_SAMESITE=none`; this requires `ENVIRONMENT=production` and HTTPS. Some browsers restrict third-party cookies, so a same-site custom domain or same-origin `/api` reverse proxy is more reliable. Do not use wildcard origins with credentials.
 
 Run backend tests with:
 
