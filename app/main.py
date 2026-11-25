@@ -108,8 +108,8 @@ def health() -> dict[str, str]:
 @auth_router.post("/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterRequest, response: Response, db: Database) -> User:
     if payload.role == "counsellor":
-        invitation = os.getenv("AUTH_COUNSELLOR_INVITE_CODE", "")
-        supplied = payload.counsellor_invite_code or ""
+        invitation = os.getenv("AUTH_COUNSELLOR_INVITE_CODE", "").strip()
+        supplied = (payload.counsellor_invite_code or "").strip()
         if not invitation:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

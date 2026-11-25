@@ -11,7 +11,9 @@ pip install -r requirements-dev.txt
 cp .env.example .env
 ```
 
-Set `AUTH_SECRET_KEY` in `.env` to a private random value (for example, generate one with `openssl rand -hex 32`). Set `AUTH_COUNSELLOR_INVITE_CODE` if counsellor sign-up is needed. Keep `.env` private; it is ignored by Git.
+Set `AUTH_SECRET_KEY` in `.env` to a private random value (for example, generate one with `openssl rand -hex 32`). This is the session-signing key; it is **not** the counsellor invitation code. To enable counsellor sign-up, set `AUTH_COUNSELLOR_INVITE_CODE` to the code counsellors will enter in the registration form. Keep `.env` private; it is ignored by Git.
+
+The invitation code is case-sensitive; surrounding spaces are ignored. If registration returns `403`, check that the running backend loaded the same `AUTH_COUNSELLOR_INVITE_CODE` from this `.env`, then stop and restart the API. If that variable was previously exported in the shell, run `unset AUTH_COUNSELLOR_INVITE_CODE` before restarting to use the `.env` value instead. Never put real secrets in `.env.example`.
 
 Start the API from this directory:
 

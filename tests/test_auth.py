@@ -96,7 +96,8 @@ def test_duplicate_username_is_rejected_case_insensitively(client):
     assert response.status_code == 409
 
 
-def test_counsellor_registration_requires_invitation(client):
+def test_counsellor_registration_requires_invitation(client, monkeypatch):
+    monkeypatch.setenv("AUTH_COUNSELLOR_INVITE_CODE", "  test-counsellor-invite  ")
     payload = {
         "full_name": "Counsellor Account",
         "username": "counsellor.account",
@@ -108,11 +109,21 @@ def test_counsellor_registration_requires_invitation(client):
 
     response = client.post(
         "/api/auth/register",
-        json={**payload, "counsellor_invite_code": "test-counsellor-invite"},
+        json={**payload, "counsellor_invite_code": "  test-counsellor-invite  "},
     )
 
     assert response.status_code == 201
     assert response.json()["role"] == "counsellor"
+
+    login_response = client.post(
+        "/api/auth/login",
+        json={"identifier": "counsellor.account", "password": payload["password"]},
+    )
+    assert login_response.status_code == 200
+    assert login_response.json()["role"] == "counsellor"
+    assert login_response.json()["username"] == "counsellor.account"
+    assert login_response.json()["email"] == "counsellor@university.edu"
+    assert client.get("/api/auth/me").json()["role"] == "counsellor"
 
 
 def test_login_uses_password_and_account_role(client):
